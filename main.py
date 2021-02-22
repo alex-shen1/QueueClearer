@@ -7,7 +7,7 @@ load_dotenv()
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = 'alex\'s test server for fun dev times'
-CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
+# CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
 
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
