@@ -1,71 +1,91 @@
+"""
+Code for my office hours helping bot.
+"""
 import os
 import discord
-
 from dotenv import load_dotenv
+
+# pylint:disable=fixme,global-statement
 
 load_dotenv()
 
+# Discord API token. Links to the bot account, needed in env to work.
+""" Discord API token. Links to the bot account, needed in env to work."""
 TOKEN = os.getenv('DISCORD_TOKEN')
-GUILD = 'alex\'s test server for fun dev times'
-# CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
 
-intents = discord.Intents.all()
-client = discord.Client(intents=intents)
+""" Name of channel for office hours queue. Defaults to value used by the CS 3240 server."""
+OH_QUEUE_CHANNEL = os.getenv('OH_QUEUE_CHANNEL', default='office-hours-queue')
+
+""" Discord client object. Needs to run at the end and be declared before these decorators, idk."""
+client = discord.Client()
+
+""" Dictionary mapping student Discord IDs to a list of Message objects they have sent in OH queue."""
+MESSAGES = {}
+
+""" Set of roles held by staff, whose messages we DON'T want automatically deleted from the queue.
+    Defaults to values used by the CS 3240 server."""
+INSTRUCTOR_ROLES = set(os.getenv('INSTRUCTOR_ROLES', default='teaching-assistant,professor')
+                       .split(','))
 
 
 @client.event
 async def on_ready():
+    """Simply prints out a message to confirm the bot is connected."""
+    print(f'{client.user} is connected to the following servers:')
     for guild in client.guilds:
-        if guild.name == GUILD:
-            break
-
-    print(
-        f'{client.user} is connected to the following guild:\n'
-        f'{guild.name}(id: {guild.id})'
-    )
-
-
-@client.event
-async def on_typing(channel, user, when):
-    print(user, "is typing in", channel)
-
-
-messages = {}
+        print(f'{guild.name}(id: {guild.id})')
 
 
 @client.event
 async def on_message(message):
-    print(message)
-
-    if message.channel.name == 'office-hours-queue':
-        print("this was in the queue!")
+    """Adds all messages sent by students in the OH queue to `messages`."""
+    if message.channel.name == OH_QUEUE_CHANNEL and is_student(message.author):
         user_id = message.author.id
 
-        global messages
-        if user_id not in messages.keys():
-            messages[user_id] = [message]
+        global MESSAGES  # Pylint doesn't like this. Too bad!
+        if user_id not in MESSAGES.keys():
+            MESSAGES[user_id] = [message]
         else:
-            messages[user_id].append(message)
-        show_messages(user_id)
+            MESSAGES[user_id].append(message)
 
 
 @client.event
 async def on_voice_state_update(member, before, after):
-    print(member, before, after)
-    # print(messages)
-    if before.channel is not None and after.channel is None:
-        user_id = member.id
-        if user_id in messages.keys():
-            for message in messages[user_id]:
-                await message.delete()
-            messages.pop(user_id)
-    # print(before.channel.name, after.channel.name)
+    """
+    Logic in response to a given user switching between channels.
+
+    Technically triggers when any user on the server changes their
+    "voice state" which can mean a bunch of different things, but the one
+    we care about is channel membership. Even more technically, we only
+    care about when students leave OH queue/a help room, which we implement
+    by checking against the stored messages.
+    """
+    user_id = member.id
+    # If user is in the messages, they must have sent a msg in OH queue
+    if user_id in MESSAGES.keys():
+        # User must be leaving a voice channel, either OH queue or help room
+        if before.channel is not None:
+            # If they're moving into a channel for help, thumbs up react their messages
+            if after.channel is not None:
+                print("should be moving out of OH queue into room")
+                for message in MESSAGES[user_id]:
+                    await message.add_reaction('👍')
+            # If leaving OH entirely, then delete their messages
+            else:
+                for message in MESSAGES[user_id]:
+                    await message.delete()
+                    MESSAGES.pop(user_id)
 
 
-def show_messages(user_id):
-    for message in messages[user_id]:
-        print(message.content)
-        pass
+def is_student(user):
+    """
+    Checks if a user is a student and returns a boolean reflecting this.
+
+    We need to check if user is NOT an instructor as opposed to testing
+    if they are a student because there isn't a "student" role.
+    """
+    user_roles = set(map(str, user.roles))
+    return not user_roles & INSTRUCTOR_ROLES
 
 
 client.run(TOKEN)
