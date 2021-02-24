@@ -22,3 +22,8 @@ The deployment of the bot used for CS 3240 will be on Heroku, just running `main
 - `DISCORD_TOKEN`: Discord API token; required for the bot to work at all. The corresponding bot must also be added to the class server with the "Manage Messages" and "Add Reactions" permissions for full functionality. 
 - `OH_QUEUE_CHANNEL`: The name of the channel used for the office hours queue. Defaults to the name used by the CS 3240 server if not specified.
 - `INSTRUCTOR_ROLES`: The names of roles held by instructors (professors, TAs) on the server, whose messages in the queue shouldn't be automatically deleted. Defaults to the roles used by the CS 3240 server if not specified.
+
+
+## Future Work
+- The bot has yet to be officially used on the server, so I'm not sure if it'll scale properly. I think I could probably make the particular process more efficient (currently, it checks _all_ messages on the server and _all_ voice state changes) if performance becomes an issue.
+- Add commands `!openqueue` and `!closequeue` to allow more convenient opening/closing of the queue (i.e. enabling/disabling permissions to send messages in the channel). Would require additional permissions.
