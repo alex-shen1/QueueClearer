@@ -14,7 +14,7 @@ Using Discord's API, the bot is capable of detecting when students send messages
 - Following up on this assumption, the bot assumes that the next time the student moves between channels, they are being moved by an instructor to a help channel. At this point, the bot will put a 👍 reaction on their message(s) in the queue to signal to the other instructors that the student is being helped.
 - When a student disconnects from all voice channels entirely, the bot assumes that their issue is solved and deletes their message(s) from the queue.
 
-Critically, for the bot to work, the students cannot disconnect from any voice channel (moving between channels is fine) from the moment they enter their message. or it will be deleted.
+Critically, for the bot to work, the students cannot disconnect from any voice channel (moving between channels is fine) from the moment they enter their message, or it will be deleted.
 
 ## Deployment
 
