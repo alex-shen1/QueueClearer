@@ -44,6 +44,7 @@ async def on_message(message):
 
         global MESSAGES  # Pylint doesn't like this. Too bad!
         if user_id not in MESSAGES.keys():
+            print(message.author.name, 'has entered the OH queue!')
             MESSAGES[user_id] = [message]
         else:
             MESSAGES[user_id].append(message)
@@ -67,11 +68,12 @@ async def on_voice_state_update(member, before, after):
         if before.channel is not None:
             # If they're moving into a channel for help, thumbs up react their messages
             if after.channel is not None:
-                print("should be moving out of OH queue into room")
+                print(member.name, 'is currently getting help!')
                 for message in MESSAGES[user_id]:
                     await message.add_reaction('👍')
             # If leaving OH entirely, then delete their messages
             else:
+                print(member.name, 'has left OH, deleting their messages')
                 for message in MESSAGES[user_id]:
                     await message.delete()
                     MESSAGES.pop(user_id)
