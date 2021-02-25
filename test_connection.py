@@ -3,9 +3,12 @@ Excerpt from main.py with only the part testing if the bot is connected.
 """
 import os
 import discord
+import sys
+
 from dotenv import load_dotenv
 
 load_dotenv()
+sys.tracebacklimit = 0  # Hides irrelevant error messages when disconnecting
 
 # Discord API token. Links to the bot account, needed in env to work.
 """ Discord API token. Links to the bot account, needed in env to work."""
@@ -21,6 +24,9 @@ async def on_ready():
     print(f'{client.user} is connected to the following servers:')
     for guild in client.guilds:
         print(f'{guild.name}(id: {guild.id})')
+
+    # Throws an error on Windows, but it doesn't really matter
+    await client.close()
 
 
 client.run(TOKEN)
