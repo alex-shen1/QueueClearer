@@ -38,7 +38,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    """Adds all messages sent by students in the OH queue to `messages`."""
+    """Adds all messages sent by students in the OH queue to `MESSAGES`."""
     if message.channel.name == OH_QUEUE_CHANNEL and is_student(message.author):
         user_id = message.author.id
 
