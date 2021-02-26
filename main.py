@@ -50,7 +50,7 @@ async def on_message(message):
             else:
                 MESSAGES[user_id].append(message)
         else:
-            print(f'Instructor {message.author.name}: {message.content}')
+            print(f'Instructor {message.author.nick}: {message.content}')
 
 
 @client.event
