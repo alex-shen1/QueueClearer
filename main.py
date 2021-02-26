@@ -39,15 +39,18 @@ async def on_ready():
 @client.event
 async def on_message(message):
     """Adds all messages sent by students in the OH queue to `MESSAGES`."""
-    if message.channel.name == OH_QUEUE_CHANNEL and is_student(message.author):
-        user_id = message.author.id
+    if message.channel.name == OH_QUEUE_CHANNEL:
+        if is_student(message.author):
+            user_id = message.author.id
 
-        global MESSAGES  # Pylint doesn't like this. Too bad!
-        if user_id not in MESSAGES.keys():
-            print(message.author.name, 'has entered the OH queue!')
-            MESSAGES[user_id] = [message]
+            global MESSAGES  # Pylint doesn't like this. Too bad!
+            if user_id not in MESSAGES.keys():
+                print(message.author.name, 'has entered the OH queue!')
+                MESSAGES[user_id] = [message]
+            else:
+                MESSAGES[user_id].append(message)
         else:
-            MESSAGES[user_id].append(message)
+            print(f'Instructor {message.author.name}: {message.content}')
 
 
 @client.event
