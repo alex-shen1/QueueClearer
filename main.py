@@ -4,6 +4,8 @@ Code for my office hours helping bot.
 import os
 import discord
 from dotenv import load_dotenv
+from functools import reduce
+from operator import or_
 
 # pylint:disable=fixme,global-statement
 
@@ -27,6 +29,10 @@ MESSAGES = {}
 INSTRUCTOR_ROLES = set(os.getenv('INSTRUCTOR_ROLES', default='teaching-assistant,professor')
                        .split(','))
 
+""" Set of unique strings that are contained in the names of instructor rooms (e.g. TA Room 1, etc.)
+    Defaults to values used by the CS 3240 server."""
+INSTRUCTOR_ROOMS = set(os.getenv('INSTRUCTOR_ROOMS', default='TA,Professor')
+                       .split(','))
 
 @client.event
 async def on_ready():
@@ -71,9 +77,11 @@ async def on_voice_state_update(member, before, after):
         if before.channel is not None:
             # If they're moving into a channel for help, thumbs up react their messages
             if after.channel is not None:
-                print(member.name, 'is currently getting help!')
-                for message in MESSAGES[user_id]:
-                    await message.add_reaction('👍')
+                # Make sure the room they're joining is actually an instructor room
+                if reduce(or_, map(after.channel.name.__contains,INSTRUCTOR_ROOMS)):
+                    print(member.name, 'is currently getting help!')
+                    for message in MESSAGES[user_id]:
+                        await message.add_reaction('👍')
             # If leaving OH entirely, then delete their messages
             else:
                 print(member.name, 'has left OH, deleting their messages')
