@@ -34,6 +34,7 @@ INSTRUCTOR_ROLES = set(os.getenv('INSTRUCTOR_ROLES', default='teaching-assistant
 INSTRUCTOR_ROOMS = set(os.getenv('INSTRUCTOR_ROOMS', default='TA,Professor')
                        .split(','))
 
+
 @client.event
 async def on_ready():
     """Simply prints out a message to confirm the bot is connected."""
@@ -78,7 +79,7 @@ async def on_voice_state_update(member, before, after):
             # If they're moving into a channel for help, thumbs up react their messages
             if after.channel is not None:
                 # Make sure the room they're joining is actually an instructor room
-                if reduce(or_, map(after.channel.name.__contains,INSTRUCTOR_ROOMS)):
+                if reduce(or_, map(after.channel.name.__contains__, INSTRUCTOR_ROOMS)):
                     print(member.name, 'is currently getting help!')
                     for message in MESSAGES[user_id]:
                         await message.add_reaction('👍')
