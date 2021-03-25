@@ -22,8 +22,11 @@ The deployment of the bot used for CS 3240 will be on Heroku, just running `main
 - `DISCORD_TOKEN`: Discord API token; required for the bot to work at all. The corresponding bot must also be added to the class server with the "Manage Messages" and "Add Reactions" permissions for full functionality. 
 - `OH_QUEUE_CHANNEL`: The name of the channel used for the office hours queue. Defaults to the name used by the CS 3240 server if not specified.
 - `INSTRUCTOR_ROLES`: The names of roles held by instructors (professors, TAs) on the server, whose messages in the queue shouldn't be automatically deleted. Defaults to the roles used by the CS 3240 server if not specified.
+- `INSTRUCTOR_ROOMS`: Some string that can be used to uniquely identify voice channels designated as "help rooms." Used to ensure that students are moving into a real office hours channel to get help before reacting to their messages. The CS 3240 server is structured that there is a "Professor Room" and "TA Room 0", "TA Room 1", etc. so the variable defaults to `'TA,Professor'` because no other channels on the server have these strings. 
+- `LOGGING`: Determines whether or not (extra) logging should be enabled. Environmental variables are strings, so the variable is set to whatever calling the `bool()` constructor on the environmental value gives. Defaults to `False`. 
 
+As of this writing (3/25/21), the bot has been in use on the official CS 3240 server for around a month now, with a generally high level of success. Performance issues have been minimal, and small bugs have been fixed as they pop up.
 
 ## Future Work
-- The bot has yet to be officially used on the server, so I'm not sure if it'll scale properly. I think I could probably make the particular process more efficient (currently, it checks _all_ messages on the server and _all_ voice state changes) if performance becomes an issue.
 - Add commands `!openqueue` and `!closequeue` to allow more convenient opening/closing of the queue (i.e. enabling/disabling permissions to send messages in the channel). Would require additional permissions.
+- Heroku recently sent me a notice that I'm almost running out of free-tier dyno hours for the month. I managed to get more just by verifying a credit card, but it'd probably be better practice to have it automatically sleep/wake at times when nobody is hosting office hours.
