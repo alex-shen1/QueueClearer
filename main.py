@@ -34,6 +34,9 @@ INSTRUCTOR_ROLES = set(os.getenv('INSTRUCTOR_ROLES', default='teaching-assistant
 INSTRUCTOR_ROOMS = set(os.getenv('INSTRUCTOR_ROOMS', default='TA,Professor')
                        .split(','))
 
+""" Whether or not logging should be enabled."""
+LOGGING = bool(os.getenv('DISCORD_TOKEN', default='False'))
+
 
 @client.event
 async def on_ready():
@@ -80,7 +83,8 @@ async def on_voice_state_update(member, before, after):
             if after.channel is not None:
                 # Make sure the room they're joining is actually an instructor room
                 if reduce(or_, map(after.channel.name.__contains__, INSTRUCTOR_ROOMS)):
-                    print(member.name, 'is currently getting help!')
+                    print(member.name, 'is currently getting help!', end=' ')
+                    print(f'{before.channel.name} -> {after.channel.name}' if LOGGING else '')
                     for message in MESSAGES[user_id]:
                         await message.add_reaction('👍')
             # If leaving OH entirely, then delete their messages
