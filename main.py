@@ -18,8 +18,14 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 """ Name of channel for office hours queue. Defaults to value used by the CS 3240 server."""
 OH_QUEUE_CHANNEL = os.getenv('OH_QUEUE_CHANNEL', default='office-hours-queue')
 
+""" Name of voice channel for the OH waiting room. Defaults to value used by the CS 3240 server. """
+WAITING_ROOM_CHANNEL = os.getenv('OH_QUEUE_CHANNEL', default='Office Hours Waiting Room')
+
 """ Discord client object. Needs to run at the end and be declared before these decorators, idk."""
-client = discord.Client()
+# Explicitly declare we need to track members (to see if old messages should be deleted)
+intents = discord.Intents.default()
+intents.members = True
+client = discord.Client(intents=intents)
 
 """ Dictionary mapping student Discord IDs to a list of Message objects they have sent in OH queue."""
 MESSAGES = {}
@@ -45,20 +51,35 @@ async def on_ready():
     for guild in client.guilds:
         print(f'{guild.name}(id: {guild.id})')
 
+        # Get the queue/waiting room Channel objects - should only be 1 per server
+        queue = next(channel for channel in guild.channels if channel.name == OH_QUEUE_CHANNEL)
+        waiting_room = next(channel for channel in guild.channels if channel.name == WAITING_ROOM_CHANNEL)
+
+        # Can have many different help channels (e.g. TA Room 1, TA Room 2, etc.)
+        help_channels = list(filter(lambda channel: reduce(or_, map(channel.name.__contains__, INSTRUCTOR_ROOMS)),
+                                    guild.channels))
+
+        # Process all preexisting student messages upon initialization
+        async for message in queue.history():
+            # Need to get member instead of just using the message author because for some reason messages authors
+            # that you get from queue.history() are User objects that don't have role information
+            author = guild.get_member(message.author.id)
+            if is_student(author):
+                add_student_message(message)
+                # If a student is currently in a help room, react to their message
+                if reduce(or_, map(lambda channel: author in channel.members, help_channels)):
+                    await message.add_reaction('👍')
+                # Otherwise, if they aren't in the waiting room at all, delete their message
+                elif author not in waiting_room.members:
+                    await message.delete()
+
 
 @client.event
 async def on_message(message):
     """Adds all messages sent by students in the OH queue to `MESSAGES`."""
     if message.channel.name == OH_QUEUE_CHANNEL:
         if is_student(message.author):
-            user_id = message.author.id
-
-            global MESSAGES  # Pylint doesn't like this. Too bad!
-            if user_id not in MESSAGES.keys():
-                print(message.author.name, 'has entered the OH queue!')
-                MESSAGES[user_id] = [message]
-            else:
-                MESSAGES[user_id].append(message)
+            add_student_message(message)
         else:
             print(f'Instructor {message.author.nick}: {message.content}')
 
@@ -86,13 +107,31 @@ async def on_voice_state_update(member, before, after):
                     print(member.name, 'is currently getting help!', end=' ')
                     print(f'{before.channel.name} -> {after.channel.name}' if LOGGING else '')
                     for message in MESSAGES[user_id]:
-                        await message.add_reaction('👍')
+                        try:
+                            await message.add_reaction('👍')
+                        except discord.NotFound:
+                            print(f'Message not found - seems like {member.name}\'s message was already deleted.')
             # If leaving OH entirely, then delete their messages
             else:
                 print(member.name, 'has left OH, deleting their messages')
                 for message in MESSAGES[user_id]:
-                    await message.delete()
-                    MESSAGES.pop(user_id)
+                    try:
+                        await message.delete()
+                    except discord.NotFound:
+                        print(f'Message not found - seems like {member.name}\'s message was already deleted.')
+                MESSAGES.pop(user_id)
+
+
+def add_student_message(message):
+    """Given a Message object, adds it to the global MESSAGES dict."""
+    user_id = message.author.id
+
+    global MESSAGES  # Pylint doesn't like this. Too bad!
+    if user_id not in MESSAGES.keys():
+        print(message.author.name, 'has entered the OH queue!')
+        MESSAGES[user_id] = [message]
+    else:
+        MESSAGES[user_id].append(message)
 
 
 def is_student(user):
