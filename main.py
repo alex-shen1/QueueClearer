@@ -60,17 +60,22 @@ async def on_ready():
                                     guild.channels))
 
         # Process all preexisting student messages upon initialization
+        print('Processing message history for', guild.name)
         async for message in queue.history():
             # Need to get member instead of just using the message author because for some reason messages authors
             # that you get from queue.history() are User objects that don't have role information
             author = guild.get_member(message.author.id)
             if is_student(author):
                 add_student_message(message)
+                # *Maybe* the extra try-except blocks used below could be used here, but I doubt it because
+                # it's highly unlikely history changes in the nanoseconds between when it's accessed and here
                 # If a student is currently in a help room, react to their message
                 if reduce(or_, map(lambda channel: author in channel.members, help_channels)):
+                    print(author.name, 'is currently in a help channel!')
                     await message.add_reaction('👍')
                 # Otherwise, if they aren't in the waiting room at all, delete their message
                 elif author not in waiting_room.members:
+                    print(author.name, 'has left OH, deleting their old messages')
                     await message.delete()
 
 
