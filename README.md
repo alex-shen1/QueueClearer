@@ -20,7 +20,8 @@ Critically, for the bot to work, the students cannot disconnect from any voice c
 
 The deployment of the bot used for CS 3240 will be on Heroku, just running `main.py` indefinitely. It has these config vars:
 - `DISCORD_TOKEN`: Discord API token; required for the bot to work at all. The corresponding bot must also be added to the class server with the "Manage Messages" and "Add Reactions" permissions for full functionality. 
-- `OH_QUEUE_CHANNEL`: The name of the channel used for the office hours queue. Defaults to the name used by the CS 3240 server if not specified.
+- `OH_QUEUE_CHANNEL`: The name of the text channel used for the office hours queue. Defaults to the name used by the CS 3240 server if not specified.
+- `WAITING_ROOM_CHANNEL`: The name of the voice channel where students will wait for an instructor to pull them into their voice channel. Defaults to the name used by the CS 3240 server if not specified.
 - `INSTRUCTOR_ROLES`: The names of roles held by instructors (professors, TAs) on the server, whose messages in the queue shouldn't be automatically deleted. Defaults to the roles used by the CS 3240 server if not specified.
 - `INSTRUCTOR_ROOMS`: Some string that can be used to uniquely identify voice channels designated as "help rooms." Used to ensure that students are moving into a real office hours channel to get help before reacting to their messages. The CS 3240 server is structured that there is a "Professor Room" and "TA Room 0", "TA Room 1", etc. so the variable defaults to `'TA,Professor'` because no other channels on the server have these strings. 
 - `LOGGING`: Determines whether or not (extra) logging should be enabled. Environmental variables are strings, so the variable is set to whatever calling the `bool()` constructor on the environmental value gives. Defaults to `False`. 
