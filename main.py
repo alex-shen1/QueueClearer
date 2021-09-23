@@ -84,6 +84,7 @@ async def on_message(message):
     """Adds all messages sent by students in the OH queue to `MESSAGES`."""
     if message.channel.name == OH_QUEUE_CHANNEL:
         if is_student(message.author):
+            print(message.author.name, 'has entered the OH queue!')
             add_student_message(message)
         else:
             print(f'Instructor {message.author.nick}: {message.content}')
@@ -133,7 +134,6 @@ def add_student_message(message):
 
     global MESSAGES  # Pylint doesn't like this. Too bad!
     if user_id not in MESSAGES.keys():
-        print(message.author.name, 'has entered the OH queue!')
         MESSAGES[user_id] = [message]
     else:
         MESSAGES[user_id].append(message)
